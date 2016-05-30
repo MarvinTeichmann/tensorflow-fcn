@@ -20,19 +20,17 @@ The `images` is a tensor with shape `[None, h, w, 3]`. Where `h` and `w` can hav
 
 Be aware, that influences the way `score_fr` (the original `fc8` layer) is initialized. 
 
-## Content
-
-Currently the following Models are provided:
-
-- FCN32
-
 ### Finetuning and training
 
 For training use `vgg.build(images, train=True, num_classes=num_classes)` were images is q queue yielding image batches.
 
 One can use arbitrary tensorflow training code. For example the one provided by [TensorVision](https://github.com/TensorVision/TensorVision/blob/9db59e2f23755a17ddbae558f21ae371a07f1a83/tensorvision/train.py)
 
+## Content
 
+Currently the following Models are provided:
+
+- FCN32
 
 ## Predecessors
 
