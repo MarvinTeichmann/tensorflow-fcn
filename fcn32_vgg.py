@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import os
 import logging
 from math import ceil
@@ -24,19 +28,20 @@ class FCN32VGG:
         print("npy file loaded")
 
     def build(self, rgb, train=False, num_classes=20, random_init_fc8=False):
-            """
-            Build the VGG model using loaded weights
-            Parameters
-            ----------
-            rgb: numpy array
-                Image in rgb shaped. Each channel scaled to the interval [0,1]
-            train: bool
-                Whether to build train or inference graph 
-            num_classes: int
-                How many classes should be predicted (by fc8)
-            random_init_fc8 : bool
-                Whether to initialize fc8 layer randomly. Finetuning is required in this case.
-            """
+        """
+        Build the VGG model using loaded weights
+        Parameters
+        ----------
+        rgb: numpy array
+            Image in rgb shaped. Each channel scaled to the interval [0,1]
+        train: bool
+            Whether to build train or inference graph
+        num_classes: int
+            How many classes should be predicted (by fc8)
+        random_init_fc8 : bool
+            Whether to initialize fc8 layer randomly.
+            Finetuning is required in this case.
+        """
         rgb_scaled = rgb * 255.0
 
         # Convert RGB to BGR
@@ -116,8 +121,12 @@ class FCN32VGG:
                             message='Shape of fc7: ',
                             summarize=4, first_n=1)
 
-        self.score_fr = self._fc_layer(self.relu7, "score_fr",
-                                       num_classes=num_classes)
+        if random_init_fc8:
+            self.score_fr = self._score_layer(self.fc7, "score_fr",
+                                              num_classes)
+        else:
+            self.score_fr = self._fc_layer(self.relu7, "score_fr",
+                                           num_classes=num_classes)
         self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
                                  message='Shape of score_fr: ',
                                  summarize=4, first_n=1)
@@ -164,6 +173,24 @@ class FCN32VGG:
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 4096])
             conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
             conv_biases = self.get_bias(name, num_classes=num_classes)
+            bias = tf.nn.bias_add(conv, conv_biases)
+
+            return bias
+
+    def _score_layer(self, bottom, name, num_classes):
+        with tf.variable_scope(name) as scope:
+            # get number of input channels
+            in_features = bottom.get_shape()[3].value
+            shape = [1, 1, in_features, num_classes]
+            # He initialization Sheme
+            num_input = in_features
+            stddev = (2 / num_input)**0.5
+            # Apply convolution
+            w_decay = 1e-4
+            weights = self._variable_with_weight_decay(shape, stddev, w_decay)
+            conv = tf.nn.conv2d(bottom, weights, [1, 1, 1, 1], padding='SAME')
+            # Apply bias
+            conv_biases = self._bias_variable([num_classes], constant=0.0)
             bias = tf.nn.bias_add(conv, conv_biases)
 
             return bias
@@ -264,6 +291,38 @@ class FCN32VGG:
             avg_fweight[:, :, :, avg_idx] = np.mean(
                 fweight[:, :, :, start_idx:end_idx], axis=3)
         return avg_fweight
+
+    def _variable_with_weight_decay(self, shape, stddev, wd):
+        """Helper to create an initialized Variable with weight decay.
+
+        Note that the Variable is initialized with a truncated normal
+        distribution.
+        A weight decay is added only if one is specified.
+
+        Args:
+          name: name of the variable
+          shape: list of ints
+          stddev: standard deviation of a truncated Gaussian
+          wd: add L2Loss weight decay multiplied by this float. If None, weight
+              decay is not added for this Variable.
+
+        Returns:
+          Variable Tensor
+        """
+
+        initializer = tf.truncated_normal_initializer(stddev=stddev)
+        var = tf.get_variable('weights', shape=shape,
+                              initializer=initializer)
+
+        if wd and (not tf.get_variable_scope().reuse):
+            weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+            tf.add_to_collection('losses', weight_decay)
+        return var
+
+    def _bias_variable(self, shape, constant=0.0):
+        initializer = tf.constant_initializer(constant)
+        return tf.get_variable(name='biases', shape=shape,
+                               initializer=initializer)
 
     def get_fc_weight_reshape(self, name, shape, num_classes=None):
         print('Layer name: %s' % name)

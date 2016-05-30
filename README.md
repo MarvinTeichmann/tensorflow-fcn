@@ -37,3 +37,7 @@ One can use arbitrary tensorflow training code. For example the one provided by 
 ## Predecessors
 
 Weights were generated using [Caffe to Tensorflow](https://github.com/ethereon/caffe-tensorflow). The VGG implementation is based on [tensorflow-vgg16](https://github.com/ry/tensorflow-vgg16) and numpy loading is based on [tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). You do not need any of the above cited code to run the model, not do you need caffe.
+
+## TODO
+
+Provide finetuned FCN weights.
