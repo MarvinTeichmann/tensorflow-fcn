@@ -23,7 +23,20 @@ class FCN32VGG:
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
         print("npy file loaded")
 
-    def build(self, rgb, train=False, num_classes=20):
+    def build(self, rgb, train=False, num_classes=20, random_init_fc8=False):
+            """
+            Build the VGG model using loaded weights
+            Parameters
+            ----------
+            rgb: numpy array
+                Image in rgb shaped. Each channel scaled to the interval [0,1]
+            train: bool
+                Whether to build train or inference graph 
+            num_classes: int
+                How many classes should be predicted (by fc8)
+            random_init_fc8 : bool
+                Whether to initialize fc8 layer randomly. Finetuning is required in this case.
+            """
         rgb_scaled = rgb * 255.0
 
         # Convert RGB to BGR
