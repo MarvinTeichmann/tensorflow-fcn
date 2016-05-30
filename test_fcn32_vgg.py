@@ -34,7 +34,7 @@ with tf.Session() as sess:
     sess.run(tf.initialize_all_variables())
 
     print('Running the Network')
-    tensors = [vgg_fcn.pred_slice, vgg_fcn.pred_up]
+    tensors = [vgg_fcn.pred, vgg_fcn.pred_up]
     down, up = sess.run(tensors, feed_dict=feed_dict)
 
     down_color = utils.color_image(down[0])

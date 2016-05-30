@@ -23,7 +23,7 @@ class FCN32VGG:
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
         print("npy file loaded")
 
-    def build(self, rgb, train=False):
+    def build(self, rgb, train=False, num_classes=20):
         rgb_scaled = rgb * 255.0
 
         # Convert RGB to BGR
@@ -103,28 +103,19 @@ class FCN32VGG:
                             message='Shape of fc7: ',
                             summarize=4, first_n=1)
 
-        self.fc8 = self._fc_layer(self.relu7, "fc8")
-        self.fc8 = tf.Print(self.fc8, [tf.shape(self.fc8)],
-                            message='Shape of fc8: ',
-                            summarize=4, first_n=1)
+        self.score_fr = self._fc_layer(self.relu7, "score_fr",
+                                       num_classes=num_classes)
+        self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
+                                 message='Shape of score_fr: ',
+                                 summarize=4, first_n=1)
 
-        self.pred = tf.argmax(self.fc8, dimension=3)
+        self.pred = tf.argmax(self.score_fr, dimension=3)
 
-        self.slice = self.fc8[:, :, :, 195:295]
-        self.pred_slice = tf.argmax(self.slice, dimension=3)
-
-        self.up = self._upscore_layer(self.slice, shape=tf.shape(bgr),
-                                      num_classes=100,
+        self.up = self._upscore_layer(self.score_fr, shape=tf.shape(bgr),
+                                      num_classes=num_classes,
                                       name='up', ksize=64, stride=32)
 
-        self.fc8 = tf.Print(self.fc8, [tf.shape(self.up)],
-                            message='Shape of fc8: ',
-                            summarize=4, first_n=1)
-
         self.pred_up = tf.argmax(self.up, dimension=3)
-
-        self.reshape = tf.reshape(self.fc8, [-1, 1000])
-        self.prob = tf.nn.softmax(self.reshape, name="prob")
 
     def _max_pool(self, bottom, name):
         return tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
@@ -141,7 +132,7 @@ class FCN32VGG:
             relu = tf.nn.relu(bias)
             return relu
 
-    def _fc_layer(self, bottom, name):
+    def _fc_layer(self, bottom, name, num_classes=None):
         with tf.variable_scope(name) as scope:
             shape = bottom.get_shape().as_list()
 
@@ -152,12 +143,14 @@ class FCN32VGG:
             # x = tf.reshape(bottom, [-1, dim])
             if name == 'fc6':
                 filt = self.get_fc_weight_reshape(name, [7, 7, 512, 4096])
-            elif name == 'fc8':
-                filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 1000])
+            elif name == 'score_fr':
+                name = 'fc8'  # Name of score_fr layer in VGG Model
+                filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 1000],
+                                                  num_classes=num_classes)
             else:
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 4096])
             conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
-            conv_biases = self.get_bias(name)
+            conv_biases = self.get_bias(name, num_classes=num_classes)
             bias = tf.nn.bias_add(conv, conv_biases)
 
             return bias
@@ -219,10 +212,15 @@ class FCN32VGG:
         print('Layer shape: %s' % str(shape))
         return tf.get_variable(name="filter", initializer=init, shape=shape)
 
-    def get_bias(self, name):
-        init = tf.constant_initializer(value=self.data_dict[name][1],
-                                       dtype=tf.float32)
+    def get_bias(self, name, num_classes=None):
+        bias_wights = self.data_dict[name][1]
         shape = self.data_dict[name][1].shape
+        if name == 'fc8':
+            bias_wights = self._bias_reshape(bias_wights, shape[0],
+                                             num_classes)
+            shape = [num_classes]
+        init = tf.constant_initializer(value=bias_wights,
+                                       dtype=tf.float32)
         return tf.get_variable(name="biases", initializer=init, shape=shape)
 
     def get_fc_weight(self, name):
@@ -231,11 +229,37 @@ class FCN32VGG:
         shape = self.data_dict[name][0].shape
         return tf.get_variable(name="weights", initializer=init, shape=shape)
 
-    def get_fc_weight_reshape(self, name, shape):
+    def _bias_reshape(self, bweight, num_orig, num_new):
+        n_averaged_elements = num_orig//num_new
+        avg_bweight = np.zeros(num_new)
+        for i in range(0, num_orig, n_averaged_elements):
+            start_idx = i
+            end_idx = start_idx + n_averaged_elements
+            avg_idx = start_idx//n_averaged_elements
+            avg_bweight[avg_idx] = np.mean(bweight[start_idx:end_idx])
+        return avg_bweight
+
+    def _summary_reshape(self, fweight, shape, num_new):
+        num_orig = shape[3]
+        shape[3] = num_new
+        n_averaged_elements = num_orig//num_new
+        avg_fweight = np.zeros(shape)
+        for i in range(0, num_orig, n_averaged_elements):
+            start_idx = i
+            end_idx = start_idx + n_averaged_elements
+            avg_idx = start_idx//n_averaged_elements
+            avg_fweight[:, :, :, avg_idx] = np.mean(
+                fweight[:, :, :, start_idx:end_idx], axis=3)
+        return avg_fweight
+
+    def get_fc_weight_reshape(self, name, shape, num_classes=None):
         print('Layer name: %s' % name)
         print('Layer shape: %s' % shape)
         weights = self.data_dict[name][0]
         weights = weights.reshape(shape)
+        if num_classes is not None:
+            weights = self._summary_reshape(weights, shape,
+                                            num_new=num_classes)
         init = tf.constant_initializer(value=weights,
                                        dtype=tf.float32)
         return tf.get_variable(name="weights", initializer=init, shape=shape)
