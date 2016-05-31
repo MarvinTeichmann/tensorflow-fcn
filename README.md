@@ -22,9 +22,9 @@ Be aware, that influences the way `score_fr` (the original `fc8` layer) is initi
 
 ### Finetuning and training
 
-For training use `vgg.build(images, train=True, num_classes=num_classes)` were images is q queue yielding image batches.
+For training use `vgg.build(images, train=True, num_classes=num_classes)` were images is q queue yielding image batches. Use a softmax_cross_entropy loss function on top of the output of vgg.up. An Implementation of the loss function can be found in `loss.py`.
 
-One can use arbitrary tensorflow training code. For example the one provided by [TensorVision](https://github.com/TensorVision/TensorVision/blob/9db59e2f23755a17ddbae558f21ae371a07f1a83/tensorvision/train.py)
+For example the one provided by [TensorVision](https://github.com/TensorVision/TensorVision/blob/9db59e2f23755a17ddbae558f21ae371a07f1a83/tensorvision/train.py)
 
 ## Content
 
