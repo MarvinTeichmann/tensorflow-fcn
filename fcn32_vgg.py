@@ -27,7 +27,8 @@ class FCN32VGG:
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
         print("npy file loaded")
 
-    def build(self, rgb, train=False, num_classes=20, random_init_fc8=False):
+    def build(self, rgb, train=False, num_classes=20, random_init_fc8=False,
+              debug=False):
         """
         Build the VGG model using loaded weights
         Parameters
@@ -43,79 +44,90 @@ class FCN32VGG:
             Finetuning is required in this case.
         """
         # Convert RGB to BGR
-        red, green, blue = tf.split(3, 3, rgb)
-        # assert red.get_shape().as_list()[1:] == [224, 224, 1]
-        # assert green.get_shape().as_list()[1:] == [224, 224, 1]
-        # assert blue.get_shape().as_list()[1:] == [224, 224, 1]
-        bgr = tf.concat(3, [
-            blue - VGG_MEAN[0],
-            green - VGG_MEAN[1],
-            red - VGG_MEAN[2],
-        ])
 
-        bgr = tf.Print(bgr, [tf.shape(bgr)],
-                       message='Shape of input image: ',
-                       summarize=4, first_n=1)
+        with tf.name_scope('Processing'):
+
+            red, green, blue = tf.split(3, 3, rgb)
+            # assert red.get_shape().as_list()[1:] == [224, 224, 1]
+            # assert green.get_shape().as_list()[1:] == [224, 224, 1]
+            # assert blue.get_shape().as_list()[1:] == [224, 224, 1]
+            bgr = tf.concat(3, [
+                blue - VGG_MEAN[0],
+                green - VGG_MEAN[1],
+                red - VGG_MEAN[2],
+            ])
+
+            if debug:
+                bgr = tf.Print(bgr, [tf.shape(bgr)],
+                               message='Shape of input image: ',
+                               summarize=4, first_n=1)
 
         self.conv1_1 = self._conv_layer(bgr, "conv1_1")
         self.conv1_2 = self._conv_layer(self.conv1_1, "conv1_2")
         self.pool1 = self._max_pool(self.conv1_2, 'pool1')
 
-        self.pool1 = tf.Print(self.pool1, [tf.shape(self.pool1)],
-                              message='Shape of pool1: ',
-                              summarize=4, first_n=1)
+        if debug:
+            self.pool1 = tf.Print(self.pool1, [tf.shape(self.pool1)],
+                                  message='Shape of pool1: ',
+                                  summarize=4, first_n=1)
 
         self.conv2_1 = self._conv_layer(self.pool1, "conv2_1")
         self.conv2_2 = self._conv_layer(self.conv2_1, "conv2_2")
         self.pool2 = self._max_pool(self.conv2_2, 'pool2')
 
-        self.pool2 = tf.Print(self.pool2, [tf.shape(self.pool2)],
-                              message='Shape of pool2: ',
-                              summarize=4, first_n=1)
+        if debug:
+            self.pool2 = tf.Print(self.pool2, [tf.shape(self.pool2)],
+                                  message='Shape of pool2: ',
+                                  summarize=4, first_n=1)
 
         self.conv3_1 = self._conv_layer(self.pool2, "conv3_1")
         self.conv3_2 = self._conv_layer(self.conv3_1, "conv3_2")
         self.conv3_2 = self._conv_layer(self.conv3_2, "conv3_3")
         self.pool3 = self._max_pool(self.conv3_2, 'pool3')
 
-        self.pool3 = tf.Print(self.pool3, [tf.shape(self.pool3)],
-                              message='Shape of pool3: ',
-                              summarize=4, first_n=1)
+        if debug:
+            self.pool3 = tf.Print(self.pool3, [tf.shape(self.pool3)],
+                                  message='Shape of pool3: ',
+                                  summarize=4, first_n=1)
 
         self.conv4_1 = self._conv_layer(self.pool3, "conv4_1")
         self.conv4_2 = self._conv_layer(self.conv4_1, "conv4_2")
         self.conv4_3 = self._conv_layer(self.conv4_2, "conv4_3")
         self.pool4 = self._max_pool(self.conv4_3, 'pool4')
 
-        self.pool4 = tf.Print(self.pool4, [tf.shape(self.pool4)],
-                              message='Shape of pool4: ',
-                              summarize=4, first_n=1)
+        if debug:
+            self.pool4 = tf.Print(self.pool4, [tf.shape(self.pool4)],
+                                  message='Shape of pool4: ',
+                                  summarize=4, first_n=1)
 
         self.conv5_1 = self._conv_layer(self.pool4, "conv5_1")
         self.conv5_2 = self._conv_layer(self.conv5_1, "conv5_2")
         self.conv5_3 = self._conv_layer(self.conv5_2, "conv5_3")
         self.pool5 = self._max_pool(self.conv5_3, 'pool5')
 
-        self.pool5 = tf.Print(self.pool5, [tf.shape(self.pool5)],
-                              message='Shape of pool5: ',
-                              summarize=4, first_n=1)
+        if debug:
+            self.pool5 = tf.Print(self.pool5, [tf.shape(self.pool5)],
+                                  message='Shape of pool5: ',
+                                  summarize=4, first_n=1)
 
         self.fc6 = self._fc_layer(self.pool5, "fc6")
 
         if train:
             self.fc6 = tf.nn.dropout(self.fc6, 0.5)
 
-        self.fc6 = tf.Print(self.fc6, [tf.shape(self.fc6)],
-                            message='Shape of fc6: ',
-                            summarize=4, first_n=1)
+        if debug:
+            self.fc6 = tf.Print(self.fc6, [tf.shape(self.fc6)],
+                                message='Shape of fc6: ',
+                                summarize=4, first_n=1)
 
         self.fc7 = self._fc_layer(self.fc6, "fc7")
         if train:
             self.fc7 = tf.nn.dropout(self.fc7, 0.5)
 
-        self.fc7 = tf.Print(self.fc7, [tf.shape(self.fc7)],
-                            message='Shape of fc7: ',
-                            summarize=4, first_n=1)
+        if debug:
+            self.fc7 = tf.Print(self.fc7, [tf.shape(self.fc7)],
+                                message='Shape of fc7: ',
+                                summarize=4, first_n=1)
 
         if random_init_fc8:
             self.score_fr = self._score_layer(self.fc7, "score_fr",
@@ -124,15 +136,21 @@ class FCN32VGG:
             self.score_fr = self._fc_layer(self.fc7, "score_fr",
                                            num_classes=num_classes,
                                            relu=False)
-        self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
-                                 message='Shape of score_fr: ',
-                                 summarize=4, first_n=1)
+        if debug:
+            self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
+                                     message='Shape of score_fr: ',
+                                     summarize=4, first_n=1)
 
         self.pred = tf.argmax(self.score_fr, dimension=3)
 
         self.up = self._upscore_layer(self.score_fr, shape=tf.shape(bgr),
                                       num_classes=num_classes,
                                       name='up', ksize=64, stride=32)
+
+        if debug:
+            self.up = tf.Print(self.up, [tf.shape(self.up)],
+                               message='Shape of score_fr: ',
+                               summarize=4, first_n=1)
 
         self.pred_up = tf.argmax(self.up, dimension=3)
 
@@ -214,9 +232,6 @@ class FCN32VGG:
             else:
                 new_shape = [shape[0], shape[1], shape[2], num_classes]
             output_shape = tf.pack(new_shape)
-            output_shape = tf.Print(output_shape, [output_shape],
-                                    message="Upscoring Shape: ",
-                                    summarize=4, first_n=1)
 
             logging.debug("Layer: %s, Fan-in: %d" % (name, in_features))
             f_shape = [ksize, ksize, num_classes, in_features]
