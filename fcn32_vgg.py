@@ -101,19 +101,17 @@ class FCN32VGG:
                               summarize=4, first_n=1)
 
         self.fc6 = self._fc_layer(self.pool5, "fc6")
-        # assert self.fc6.get_shape().as_list()[1:] == [4096]
-        self.relu6 = tf.nn.relu(self.fc6)
+
         if train:
-            self.relu6 = tf.nn.dropout(self.relu6, 0.5)
+            self.fc6 = tf.nn.dropout(self.fc6, 0.5)
 
         self.fc6 = tf.Print(self.fc6, [tf.shape(self.fc6)],
                             message='Shape of fc6: ',
                             summarize=4, first_n=1)
 
-        self.fc7 = self._fc_layer(self.relu6, "fc7")
-        self.relu7 = tf.nn.relu(self.fc7)
+        self.fc7 = self._fc_layer(self.fc6, "fc7")
         if train:
-            self.relu7 = tf.nn.dropout(self.relu7, 0.5)
+            self.fc7 = tf.nn.dropout(self.fc7, 0.5)
 
         self.fc7 = tf.Print(self.fc7, [tf.shape(self.fc7)],
                             message='Shape of fc7: ',
@@ -123,8 +121,9 @@ class FCN32VGG:
             self.score_fr = self._score_layer(self.fc7, "score_fr",
                                               num_classes)
         else:
-            self.score_fr = self._fc_layer(self.relu7, "score_fr",
-                                           num_classes=num_classes)
+            self.score_fr = self._fc_layer(self.fc7, "score_fr",
+                                           num_classes=num_classes,
+                                           relu=False)
         self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
                                  message='Shape of score_fr: ',
                                  summarize=4, first_n=1)
@@ -150,17 +149,15 @@ class FCN32VGG:
             bias = tf.nn.bias_add(conv, conv_biases)
 
             relu = tf.nn.relu(bias)
+            # Add summary to Tensorboard
+            _activation_summary(relu)
             return relu
 
-    def _fc_layer(self, bottom, name, num_classes=None):
+    def _fc_layer(self, bottom, name, num_classes=None,
+                  relu=True):
         with tf.variable_scope(name) as scope:
             shape = bottom.get_shape().as_list()
 
-            # print("bottom.get_shape(): %s"% shape)
-            # dim = 1
-            # for d in shape[1:]:
-            #     dim *= d
-            # x = tf.reshape(bottom, [-1, dim])
             if name == 'fc6':
                 filt = self.get_fc_weight_reshape(name, [7, 7, 512, 4096])
             elif name == 'score_fr':
@@ -173,6 +170,10 @@ class FCN32VGG:
             conv_biases = self.get_bias(name, num_classes=num_classes)
             bias = tf.nn.bias_add(conv, conv_biases)
 
+            if relu:
+                bias = tf.nn.relu(bias)
+
+            _activation_summary(bias)
             return bias
 
     def _score_layer(self, bottom, name, num_classes):
@@ -190,6 +191,8 @@ class FCN32VGG:
             # Apply bias
             conv_biases = self._bias_variable([num_classes], constant=0.0)
             bias = tf.nn.bias_add(conv, conv_biases)
+
+            _activation_summary(bias)
 
             return bias
 
@@ -225,6 +228,8 @@ class FCN32VGG:
             weights = self.get_deconv_filter(f_shape, wd)
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
+
+        _activation_summary(deconv)
         return deconv
 
     def get_deconv_filter(self, f_shape, wd):
@@ -333,3 +338,22 @@ class FCN32VGG:
         init = tf.constant_initializer(value=weights,
                                        dtype=tf.float32)
         return tf.get_variable(name="weights", initializer=init, shape=shape)
+
+
+def _activation_summary(x):
+    """Helper to create summaries for activations.
+
+    Creates a summary that provides a histogram of activations.
+    Creates a summary that measure the sparsity of activations.
+
+    Args:
+      x: Tensor
+    Returns:
+      nothing
+    """
+    # Remove 'tower_[0-9]/' from the name in case this is a multi-GPU training
+    # session. This helps the clarity of presentation on tensorboard.
+    tensor_name = x.op.name
+    # tensor_name = re.sub('%s_[0-9]*/' % TOWER_NAME, '', x.op.name)
+    tf.histogram_summary(tensor_name + '/activations', x)
+    tf.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
