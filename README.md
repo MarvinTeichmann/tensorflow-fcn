@@ -13,12 +13,12 @@ Use this to build the VGG object for finetuning:
 
 ```
 vgg = vgg16.Vgg16()
-vgg.build(images, train=True, num_classes=num_classes)
+vgg.build(images, train=True, num_classes=num_classes, random_init_fc8=True)
 ```
 The `images` is a tensor with shape `[None, h, w, 3]`. Where `h` and `w` can have arbitrary size.
 >Trick: the tensor can be a placeholder, a variable or even a constant.
 
-Be aware, that influences the way `score_fr` (the original `fc8` layer) is initialized. 
+Be aware, that `num_classes` influences the way `score_fr` (the original `fc8` layer) is initialized. For finetuning I recommend using the option `random_init_fc8=True`. 
 
 ### Finetuning and training
 
