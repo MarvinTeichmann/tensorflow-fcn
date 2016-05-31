@@ -34,17 +34,17 @@ def loss(hypes, logits, labels, num_classes):
         labels = tf.to_float(tf.reshape(labels, (-1, num_classes)))
 
         softmax = tf.nn.softmax(logits)
-        # softmax = tf.Print(softmax, [tf.reduce_min(softmax)],
-        #                     message='Checking for negative: ')
+
+        # Optional: Prioritize some classes
+        # head: numpy array - [num_classes]
+        #     Weighting the loss of each class
         head = hypes['arch']['weight']
-        cross_entropy = -tf.reduce_sum(tf.mul(labels * tf.log(softmax), head),
-                                       reduction_indices=[1])
 
-        # TODO Check!
-
-        # cross_entropy = tf.Print(cross_entropy, [tf.reduce_max(cross_entropy)
-        # ],
-        #                          message='Checking max of entropy: ')
+        if head is not None:
+            cross_entropy = -tf.reduce_sum(tf.mul(labels * tf.log(softmax),
+                                           head), reduction_indices=[1])
+        else:
+            cross_entropy = -tf.reduce_sum(labels * tf.log(softmax), reduction_indices=[1]))
 
         cross_entropy_mean = tf.reduce_mean(cross_entropy,
                                             name='xentropy_mean')
