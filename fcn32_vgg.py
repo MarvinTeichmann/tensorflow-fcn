@@ -32,8 +32,8 @@ class FCN32VGG:
         Build the VGG model using loaded weights
         Parameters
         ----------
-        rgb: numpy array
-            Image in rgb shaped. Each channel scaled to the interval [0,1]
+        rgb: image batch tensor
+            Image in rgb shap. Scaled to Intervall [0, 255]
         train: bool
             Whether to build train or inference graph
         num_classes: int
@@ -42,10 +42,8 @@ class FCN32VGG:
             Whether to initialize fc8 layer randomly.
             Finetuning is required in this case.
         """
-        rgb_scaled = rgb * 255.0
-
         # Convert RGB to BGR
-        red, green, blue = tf.split(3, 3, rgb_scaled)
+        red, green, blue = tf.split(3, 3, rgb)
         # assert red.get_shape().as_list()[1:] == [224, 224, 1]
         # assert green.get_shape().as_list()[1:] == [224, 224, 1]
         # assert blue.get_shape().as_list()[1:] == [224, 224, 1]

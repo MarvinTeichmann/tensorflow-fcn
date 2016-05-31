@@ -17,7 +17,6 @@ from tensorflow.python.framework import ops
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
 img1 = skimage.io.imread("./test_data/tabby_cat.png")
-img1 = img1 / 255.0
 
 with tf.Session() as sess:
     images = tf.placeholder("float")
