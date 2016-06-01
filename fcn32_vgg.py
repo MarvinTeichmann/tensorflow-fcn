@@ -43,6 +43,8 @@ class FCN32VGG:
         random_init_fc8 : bool
             Whether to initialize fc8 layer randomly.
             Finetuning is required in this case.
+        debug: bool
+            Whether to print additional Debug Information.
         """
         # Convert RGB to BGR
 
@@ -65,70 +67,35 @@ class FCN32VGG:
 
         self.conv1_1 = self._conv_layer(bgr, "conv1_1")
         self.conv1_2 = self._conv_layer(self.conv1_1, "conv1_2")
-        self.pool1 = self._max_pool(self.conv1_2, 'pool1')
-
-        if debug:
-            self.pool1 = tf.Print(self.pool1, [tf.shape(self.pool1)],
-                                  message='Shape of pool1: ',
-                                  summarize=4, first_n=1)
+        self.pool1 = self._max_pool(self.conv1_2, 'pool1', debug)
 
         self.conv2_1 = self._conv_layer(self.pool1, "conv2_1")
         self.conv2_2 = self._conv_layer(self.conv2_1, "conv2_2")
-        self.pool2 = self._max_pool(self.conv2_2, 'pool2')
-
-        if debug:
-            self.pool2 = tf.Print(self.pool2, [tf.shape(self.pool2)],
-                                  message='Shape of pool2: ',
-                                  summarize=4, first_n=1)
+        self.pool2 = self._max_pool(self.conv2_2, 'pool2', debug)
 
         self.conv3_1 = self._conv_layer(self.pool2, "conv3_1")
         self.conv3_2 = self._conv_layer(self.conv3_1, "conv3_2")
         self.conv3_2 = self._conv_layer(self.conv3_2, "conv3_3")
-        self.pool3 = self._max_pool(self.conv3_2, 'pool3')
-
-        if debug:
-            self.pool3 = tf.Print(self.pool3, [tf.shape(self.pool3)],
-                                  message='Shape of pool3: ',
-                                  summarize=4, first_n=1)
+        self.pool3 = self._max_pool(self.conv3_2, 'pool3', debug)
 
         self.conv4_1 = self._conv_layer(self.pool3, "conv4_1")
         self.conv4_2 = self._conv_layer(self.conv4_1, "conv4_2")
         self.conv4_3 = self._conv_layer(self.conv4_2, "conv4_3")
-        self.pool4 = self._max_pool(self.conv4_3, 'pool4')
-
-        if debug:
-            self.pool4 = tf.Print(self.pool4, [tf.shape(self.pool4)],
-                                  message='Shape of pool4: ',
-                                  summarize=4, first_n=1)
+        self.pool4 = self._max_pool(self.conv4_3, 'pool4', debug)
 
         self.conv5_1 = self._conv_layer(self.pool4, "conv5_1")
         self.conv5_2 = self._conv_layer(self.conv5_1, "conv5_2")
         self.conv5_3 = self._conv_layer(self.conv5_2, "conv5_3")
-        self.pool5 = self._max_pool(self.conv5_3, 'pool5')
-
-        if debug:
-            self.pool5 = tf.Print(self.pool5, [tf.shape(self.pool5)],
-                                  message='Shape of pool5: ',
-                                  summarize=4, first_n=1)
+        self.pool5 = self._max_pool(self.conv5_3, 'pool5', debug)
 
         self.fc6 = self._fc_layer(self.pool5, "fc6")
 
         if train:
             self.fc6 = tf.nn.dropout(self.fc6, 0.5)
 
-        if debug:
-            self.fc6 = tf.Print(self.fc6, [tf.shape(self.fc6)],
-                                message='Shape of fc6: ',
-                                summarize=4, first_n=1)
-
         self.fc7 = self._fc_layer(self.fc6, "fc7")
         if train:
             self.fc7 = tf.nn.dropout(self.fc7, 0.5)
-
-        if debug:
-            self.fc7 = tf.Print(self.fc7, [tf.shape(self.fc7)],
-                                message='Shape of fc7: ',
-                                summarize=4, first_n=1)
 
         if random_init_fc8:
             self.score_fr = self._score_layer(self.fc7, "score_fr",
@@ -137,27 +104,24 @@ class FCN32VGG:
             self.score_fr = self._fc_layer(self.fc7, "score_fr",
                                            num_classes=num_classes,
                                            relu=False)
-        if debug:
-            self.score_fr = tf.Print(self.score_fr, [tf.shape(self.score_fr)],
-                                     message='Shape of score_fr: ',
-                                     summarize=4, first_n=1)
 
         self.pred = tf.argmax(self.score_fr, dimension=3)
 
         self.up = self._upscore_layer(self.score_fr, shape=tf.shape(bgr),
-                                      num_classes=num_classes,
+                                      num_classes=num_classes, debug=debug,
                                       name='up', ksize=64, stride=32)
-
-        if debug:
-            self.up = tf.Print(self.up, [tf.shape(self.up)],
-                               message='Shape of score_fr: ',
-                               summarize=4, first_n=1)
 
         self.pred_up = tf.argmax(self.up, dimension=3)
 
-    def _max_pool(self, bottom, name):
-        return tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
+    def _max_pool(self, bottom, name, debug):
+        pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
                               padding='SAME', name=name)
+
+        if debug:
+            pool = tf.Print(pool, [tf.shape(pool)],
+                            message='Shape of %s' % name,
+                            summarize=4, first_n=1)
+        return pool
 
     def _conv_layer(self, bottom, name):
         with tf.variable_scope(name) as scope:
@@ -173,7 +137,7 @@ class FCN32VGG:
             return relu
 
     def _fc_layer(self, bottom, name, num_classes=None,
-                  relu=True):
+                  relu=True, debug=False):
         with tf.variable_scope(name) as scope:
             shape = bottom.get_shape().as_list()
 
@@ -191,8 +155,12 @@ class FCN32VGG:
 
             if relu:
                 bias = tf.nn.relu(bias)
-
             _activation_summary(bias)
+
+            if debug:
+                bias = tf.Print(bias, [tf.shape(bias)],
+                                message='Shape of %s' % name,
+                                summarize=4, first_n=1)
             return bias
 
     def _score_layer(self, bottom, name, num_classes):
@@ -216,7 +184,7 @@ class FCN32VGG:
             return bias
 
     def _upscore_layer(self, bottom, shape,
-                       num_classes, name,
+                       num_classes, name, debug,
                        ksize=4, stride=2):
         strides = [1, stride, stride, 1]
         with tf.variable_scope(name):
@@ -243,6 +211,11 @@ class FCN32VGG:
             weights = self.get_deconv_filter(f_shape)
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
+
+            if debug:
+                deconv = tf.Print(deconv, [tf.shape(deconv)],
+                                  message='Shape of %s' % name,
+                                  summarize=4, first_n=1)
 
         _activation_summary(deconv)
         return deconv

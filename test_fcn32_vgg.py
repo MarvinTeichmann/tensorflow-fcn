@@ -25,7 +25,7 @@ with tf.Session() as sess:
 
     vgg_fcn = fcn32_vgg.FCN32VGG()
     with tf.name_scope("content_vgg"):
-        vgg_fcn.build(batch_images)
+        vgg_fcn.build(batch_images, debug=True)
 
     print('Finished building Network.')
 
