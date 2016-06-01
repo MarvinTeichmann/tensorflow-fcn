@@ -25,6 +25,7 @@ class FCN32VGG:
             vgg16_npy_path = path
 
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
+        self.wd = 5e-4
         print("npy file loaded")
 
     def build(self, rgb, train=False, num_classes=20, random_init_fc8=False,
@@ -203,7 +204,7 @@ class FCN32VGG:
             num_input = in_features
             stddev = (2 / num_input)**0.5
             # Apply convolution
-            w_decay = 1e-4
+            w_decay = self.wd
             weights = self._variable_with_weight_decay(shape, stddev, w_decay)
             conv = tf.nn.conv2d(bottom, weights, [1, 1, 1, 1], padding='SAME')
             # Apply bias
@@ -216,8 +217,7 @@ class FCN32VGG:
 
     def _upscore_layer(self, bottom, shape,
                        num_classes, name,
-                       ksize=4, stride=2,
-                       wd=5e-4):
+                       ksize=4, stride=2):
         strides = [1, stride, stride, 1]
         with tf.variable_scope(name):
             in_features = bottom.get_shape()[3].value
@@ -240,14 +240,14 @@ class FCN32VGG:
             num_input = ksize * ksize * in_features / stride
             stddev = (2 / num_input)**0.5
 
-            weights = self.get_deconv_filter(f_shape, wd)
+            weights = self.get_deconv_filter(f_shape)
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
 
         _activation_summary(deconv)
         return deconv
 
-    def get_deconv_filter(self, f_shape, wd):
+    def get_deconv_filter(self, f_shape):
         width = f_shape[0]
         heigh = f_shape[0]
         f = ceil(width/2.0)
@@ -260,7 +260,11 @@ class FCN32VGG:
         weights = np.zeros(f_shape)
         for i in range(f_shape[2]):
             weights[:, :, i, i] = bilinear
-        return tf.constant(weights, name="up_filter", dtype=tf.float32)
+
+        init = tf.constant_initializer(value=weights,
+                                       dtype=tf.float32)
+        return tf.get_variable(name="up_filter", initializer=init,
+                               shape=weights.shape)
 
     def get_conv_filter(self, name):
         init = tf.constant_initializer(value=self.data_dict[name][0],
@@ -268,7 +272,12 @@ class FCN32VGG:
         shape = self.data_dict[name][0].shape
         print('Layer name: %s' % name)
         print('Layer shape: %s' % str(shape))
-        return tf.get_variable(name="filter", initializer=init, shape=shape)
+        var = tf.get_variable(name="filter", initializer=init, shape=shape)
+        if not tf.get_variable_scope().reuse:
+            weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
+                                  name='weight_loss')
+            tf.add_to_collection('losses', weight_decay)
+        return var
 
     def get_bias(self, name, num_classes=None):
         bias_wights = self.data_dict[name][1]
@@ -285,7 +294,12 @@ class FCN32VGG:
         init = tf.constant_initializer(value=self.data_dict[name][0],
                                        dtype=tf.float32)
         shape = self.data_dict[name][0].shape
-        return tf.get_variable(name="weights", initializer=init, shape=shape)
+        var = tf.get_variable(name="weights", initializer=init, shape=shape)
+        if not tf.get_variable_scope().reuse:
+            weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
+                                  name='weight_loss')
+            tf.add_to_collection('losses', weight_decay)
+        return var
 
     def _bias_reshape(self, bweight, num_orig, num_new):
         n_averaged_elements = num_orig//num_new
