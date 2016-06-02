@@ -118,13 +118,13 @@ class FCN16VGG:
 
         self.fuse_pool4 = tf.add(self.upscore2, self.score_pool4)
 
-        self.upscore16 = self._upscore_layer(self.fuse_pool4,
+        self.upscore32 = self._upscore_layer(self.fuse_pool4,
                                              shape=tf.shape(bgr),
                                              num_classes=num_classes,
-                                             debug=debug, name='upscore16',
+                                             debug=debug, name='upscore32',
                                              ksize=32, stride=16)
 
-        self.pred_up = tf.argmax(self.upscore16, dimension=3)
+        self.pred_up = tf.argmax(self.upscore32, dimension=3)
 
     def _max_pool(self, bottom, name, debug):
         pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],

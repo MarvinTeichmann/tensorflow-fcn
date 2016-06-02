@@ -35,6 +35,12 @@ Currently the following Models are provided:
 - FCN32
 - FCN16
 
+## Remark
+
+The deconv layer of tensorflow allows to provide a shape. The crop layer of the original implementation is therefore not needed.
+
+I have slightly altered the naming of the upscore layer.
+
 ## Predecessors
 
 Weights were generated using [Caffe to Tensorflow](https://github.com/ethereon/caffe-tensorflow). The VGG implementation is based on [tensorflow-vgg16](https://github.com/ry/tensorflow-vgg16) and numpy loading is based on [tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). You do not need any of the above cited code to run the model, not do you need caffe.
