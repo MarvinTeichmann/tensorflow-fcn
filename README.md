@@ -34,6 +34,7 @@ Currently the following Models are provided:
 
 - FCN32
 - FCN16
+- FCN8
 
 ## Remark
 
@@ -45,12 +46,7 @@ I have slightly altered the naming of the upscore layer.
 
 Weights were generated using [Caffe to Tensorflow](https://github.com/ethereon/caffe-tensorflow). The VGG implementation is based on [tensorflow-vgg16](https://github.com/ry/tensorflow-vgg16) and numpy loading is based on [tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). You do not need any of the above cited code to run the model, not do you need caffe.
 
-## Note
-
-This repository is currently under heavy development (01 june 2016). More Code will be provided. Stay tuned for updates.
-
 ## TODO
 
 - Provide finetuned FCN weights.
-- Provide FCN8
 - Provide general training code
