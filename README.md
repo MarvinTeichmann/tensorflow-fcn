@@ -33,6 +33,7 @@ I had success finetuning the network using Adam Optimizer with a learning rate o
 Currently the following Models are provided:
 
 - FCN32
+- FCN16
 
 ## Predecessors
 
@@ -45,5 +46,5 @@ This repository is currently under heavy development (01 june 2016). More Code w
 ## TODO
 
 - Provide finetuned FCN weights.
-- Provide FCN16/FCN8
+- Provide FCN8
 - Provide general training code
