@@ -107,11 +107,12 @@ class FCN32VGG:
 
         self.pred = tf.argmax(self.score_fr, dimension=3)
 
-        self.up = self._upscore_layer(self.score_fr, shape=tf.shape(bgr),
-                                      num_classes=num_classes, debug=debug,
-                                      name='up', ksize=64, stride=32)
+        self.upscore = self._upscore_layer(self.score_fr, shape=tf.shape(bgr),
+                                           num_classes=num_classes,
+                                           debug=debug,
+                                           name='up', ksize=64, stride=32)
 
-        self.pred_up = tf.argmax(self.up, dimension=3)
+        self.pred_up = tf.argmax(self.upscore, dimension=3)
 
     def _max_pool(self, bottom, name, debug):
         pool = tf.nn.max_pool(bottom, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
