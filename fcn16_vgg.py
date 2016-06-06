@@ -85,6 +85,7 @@ class FCN16VGG:
 
         self.conv5_1 = self._conv_layer(self.pool4, "conv5_1")
         self.conv5_2 = self._conv_layer(self.conv5_1, "conv5_2")
+
         self.conv5_3 = self._conv_layer(self.conv5_2, "conv5_3")
         self.pool5 = self._max_pool(self.conv5_3, 'pool5', debug)
 
@@ -182,8 +183,11 @@ class FCN16VGG:
             in_features = bottom.get_shape()[3].value
             shape = [1, 1, in_features, num_classes]
             # He initialization Sheme
-            num_input = in_features
-            stddev = (2 / num_input)**0.5
+            if name == "score_fr":
+                num_input = in_features
+                stddev = (2 / num_input)**0.5
+            elif name == "score_pool4":
+                stddev = 0.001
             # Apply convolution
             w_decay = self.wd
             weights = self._variable_with_weight_decay(shape, stddev, w_decay)
@@ -225,6 +229,7 @@ class FCN16VGG:
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
 
+            deconv.set_shape([None, None, None, 2])
             if debug:
                 deconv = tf.Print(deconv, [tf.shape(deconv)],
                                   message='Shape of %s' % name,

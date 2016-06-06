@@ -189,8 +189,13 @@ class FCN8VGG:
             in_features = bottom.get_shape()[3].value
             shape = [1, 1, in_features, num_classes]
             # He initialization Sheme
-            num_input = in_features
-            stddev = (2 / num_input)**0.5
+            if name == "score_fr":
+                num_input = in_features
+                stddev = (2 / num_input)**0.5
+            elif name == "score_pool4":
+                stddev = 0.001
+            elif name == "score_pool3":
+                stddev = 0.0001
             # Apply convolution
             w_decay = self.wd
             weights = self._variable_with_weight_decay(shape, stddev, w_decay)
