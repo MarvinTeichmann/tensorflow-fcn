@@ -276,24 +276,52 @@ class FCN32VGG:
         return var
 
     def _bias_reshape(self, bweight, num_orig, num_new):
+        """ Build bias weights for filter produces with `_summary_reshape`
+
+        """
         n_averaged_elements = num_orig//num_new
         avg_bweight = np.zeros(num_new)
         for i in range(0, num_orig, n_averaged_elements):
             start_idx = i
             end_idx = start_idx + n_averaged_elements
             avg_idx = start_idx//n_averaged_elements
+            if avg_idx == num_new:
+                break
             avg_bweight[avg_idx] = np.mean(bweight[start_idx:end_idx])
         return avg_bweight
 
     def _summary_reshape(self, fweight, shape, num_new):
+        """ Produce weights for a reduced fully-connected layer.
+
+        FC8 of VGG produces 1000 classes. Most semantic segmentation
+        task require much less classes. This reshapes the original weights
+        to be used in a fully-convolutional layer which produces num_new
+        classes. To archive this the average (mean) of n adjanced classes is
+        taken.
+
+        Consider reordering fweight, to perserve semantic meaning of the
+        weights.
+
+        Args:
+          fweight: original weights
+          shape: shape of the desired fully-convolutional layer
+          num_new: number of new classes
+
+
+        Returns:
+          Filter weights for `num_new` classes.
+        """
         num_orig = shape[3]
         shape[3] = num_new
+        assert(num_new < num_orig)
         n_averaged_elements = num_orig//num_new
         avg_fweight = np.zeros(shape)
         for i in range(0, num_orig, n_averaged_elements):
             start_idx = i
             end_idx = start_idx + n_averaged_elements
             avg_idx = start_idx//n_averaged_elements
+            if avg_idx == num_new:
+                break
             avg_fweight[:, :, :, avg_idx] = np.mean(
                 fweight[:, :, :, start_idx:end_idx], axis=3)
         return avg_fweight
