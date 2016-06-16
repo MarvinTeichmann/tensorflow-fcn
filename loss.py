@@ -12,32 +12,28 @@ from __future__ import print_function
 import tensorflow as tf
 
 
-def loss(hypes, logits, labels, num_classes):
+def loss(logits, labels, num_classes, head=None):
     """Calculate the loss from the logits and the labels.
 
     Args:
-      hypes: dict
-          hyperparameters of the model
       logits: tensor, float - [batch_size, width, height, num_classes].
           Use vgg_fcn.up as logits.
       labels: Labels tensor, int32 - [batch_size, width, height, num_classes].
           The ground truth of your data.
+      head: numpy array - [num_classes]
+          Weighting the loss of each class
+          Optional: Prioritize some classes
 
     Returns:
       loss: Loss tensor of type float.
     """
     with tf.name_scope('loss'):
         logits = tf.reshape(logits, (-1, num_classes))
-        epsilon = tf.constant(value=hypes['solver']['epsilon'])
+        epsilon = tf.constant(value=1e-4)
         logits = logits + epsilon
         labels = tf.to_float(tf.reshape(labels, (-1, num_classes)))
 
         softmax = tf.nn.softmax(logits)
-
-        # Optional: Prioritize some classes
-        # head: numpy array - [num_classes]
-        #     Weighting the loss of each class
-        head = hypes['arch']['weight']
 
         if head is not None:
             cross_entropy = -tf.reduce_sum(tf.mul(labels * tf.log(softmax),
