@@ -28,8 +28,7 @@ def loss(hypes, logits, labels, num_classes):
     """
     with tf.name_scope('loss'):
         logits = tf.reshape(logits, (-1, num_classes))
-        shape = [logits.get_shape()[0], num_classes]
-        epsilon = tf.constant(value=hypes['solver']['epsilon'], shape=shape)
+        epsilon = tf.constant(value=hypes['solver']['epsilon'])
         logits = logits + epsilon
         labels = tf.to_float(tf.reshape(labels, (-1, num_classes)))
 
@@ -44,7 +43,8 @@ def loss(hypes, logits, labels, num_classes):
             cross_entropy = -tf.reduce_sum(tf.mul(labels * tf.log(softmax),
                                            head), reduction_indices=[1])
         else:
-            cross_entropy = -tf.reduce_sum(labels * tf.log(softmax), reduction_indices=[1]))
+            cross_entropy = -tf.reduce_sum(
+                labels * tf.log(softmax), reduction_indices=[1])
 
         cross_entropy_mean = tf.reduce_mean(cross_entropy,
                                             name='xentropy_mean')
