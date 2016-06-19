@@ -42,6 +42,12 @@ The deconv layer of tensorflow allows to provide a shape. The crop layer of the 
 
 I have slightly altered the naming of the upscore layer.
 
+#### Field of View
+
+The receptive field (also known as or `field of view`) of the provided model is: 
+
+`( ( ( ( ( 7 ) * 2 + 6 ) * 2 + 6 ) * 2 + 6 ) * 2 + 4 ) * 2 + 4 = 404`
+
 ## Predecessors
 
 Weights were generated using [Caffe to Tensorflow](https://github.com/ethereon/caffe-tensorflow). The VGG implementation is based on [tensorflow-vgg16](https://github.com/ry/tensorflow-vgg16) and numpy loading is based on [tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). You do not need any of the above cited code to run the model, not do you need caffe.
