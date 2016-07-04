@@ -21,8 +21,13 @@ class FCN16VGG:
             path = os.path.abspath(os.path.join(path, os.pardir))
             # print path
             path = os.path.join(path, "vgg16.npy")
-            print(path)
             vgg16_npy_path = path
+            logging.info("Load npy file from '%s'.", vgg16_npy_path)
+        if not os.path.isfile(vgg16_npy_path):
+            logging.error(("File '%s' not found. Download it from "
+                           "https://dl.dropboxusercontent.com/u/"
+                           "50333326/vgg16.npy"), vgg16_npy_path)
+            sys.exit(1)
 
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
         self.wd = 5e-4

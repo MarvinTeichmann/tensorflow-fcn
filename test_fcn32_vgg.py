@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import skimage
 import skimage.io
 import skimage.transform
