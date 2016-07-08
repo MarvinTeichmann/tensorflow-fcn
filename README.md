@@ -1,7 +1,7 @@
 # tensorflow-fcn
 This is a Tensorflow implementation of [Fully Convolutional Networks](http://arxiv.org/abs/1411.4038) in Tensorflow. The network can be applied directly or finetuned using tensorflow training code.
 
-Deconvolution Layers are initialized as bilinear upsampling. Conv and FCN layer weights using VGG weights. Numpy load is used to read VGG weights. No Caffe or Kaffe-Tensorflow is required to run this. The .npy file for <a href="https://dl.dropboxusercontent.com/u/50333326/vgg16.npy">VGG16</a> however need to be downloaded before using this needwork.
+Deconvolution Layers are initialized as bilinear upsampling. Conv and FCN layer weights using VGG weights. Numpy load is used to read VGG weights. No Caffe or Caffe-Tensorflow is required to run this. <b>The .npy file for <a href="https://dl.dropboxusercontent.com/u/50333326/vgg16.npy">VGG16</a> however need to be downloaded before using this needwork.</b>
 
 No Pascal VOC finetuning was applied to the weights. The model is meant to be finetuned on your own data. The model can be applied to an image directly (see `test_fcn32_vgg.py`) but the result will be rather coarse.
 
