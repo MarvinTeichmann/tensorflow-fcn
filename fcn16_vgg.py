@@ -234,7 +234,6 @@ class FCN16VGG:
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
 
-            deconv.set_shape([None, None, None, 2])
             if debug:
                 deconv = tf.Print(deconv, [tf.shape(deconv)],
                                   message='Shape of %s' % name,
