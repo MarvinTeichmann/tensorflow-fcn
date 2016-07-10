@@ -52,6 +52,13 @@ The receptive field (also known as or `field of view`) of the provided model is:
 
 Weights were generated using [Caffe to Tensorflow](https://github.com/ethereon/caffe-tensorflow). The VGG implementation is based on [tensorflow-vgg16](https://github.com/ry/tensorflow-vgg16) and numpy loading is based on [tensorflow-vgg](https://github.com/machrisaa/tensorflow-vgg). You do not need any of the above cited code to run the model, not do you need caffe.
 
+## Install
+
+Installing matplotlib from pip requires the following packages to be installed `libpng-dev`, `libjpeg8-dev`, `libfreetype6-dev` and `pkg-config`. On Debian, Linux Mint and Ubuntu Systems type:
+
+`sudo apt-get install libpng-dev libjpeg8-dev libfreetype6-dev pkg-config` <br>
+`pip install -r requirements.txt`
+
 ## TODO
 
 - Provide finetuned FCN weights.
