@@ -80,8 +80,8 @@ class FCN32VGG:
 
         self.conv3_1 = self._conv_layer(self.pool2, "conv3_1")
         self.conv3_2 = self._conv_layer(self.conv3_1, "conv3_2")
-        self.conv3_2 = self._conv_layer(self.conv3_2, "conv3_3")
-        self.pool3 = self._max_pool(self.conv3_2, 'pool3', debug)
+        self.conv3_3 = self._conv_layer(self.conv3_2, "conv3_3")
+        self.pool3 = self._max_pool(self.conv3_3, 'pool3', debug)
 
         self.conv4_1 = self._conv_layer(self.pool3, "conv4_1")
         self.conv4_2 = self._conv_layer(self.conv4_1, "conv4_2")
