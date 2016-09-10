@@ -203,6 +203,7 @@ class FCN8VGG:
                 stddev = 0.0001
             # Apply convolution
             w_decay = self.wd
+
             weights = self._variable_with_weight_decay(shape, stddev, w_decay)
             conv = tf.nn.conv2d(bottom, weights, [1, 1, 1, 1], padding='SAME')
             # Apply bias
@@ -266,8 +267,10 @@ class FCN8VGG:
 
         init = tf.constant_initializer(value=weights,
                                        dtype=tf.float32)
-        return tf.get_variable(name="up_filter", initializer=init,
-                               shape=weights.shape)
+        var = tf.get_variable(name="up_filter", initializer=init,
+                              shape=weights.shape)
+        _variable_summaries(var)
+        return var
 
     def get_conv_filter(self, name):
         init = tf.constant_initializer(value=self.data_dict[name][0],
@@ -280,6 +283,7 @@ class FCN8VGG:
             weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
                                   name='weight_loss')
             tf.add_to_collection('losses', weight_decay)
+        _variable_summaries(var)
         return var
 
     def get_bias(self, name, num_classes=None):
@@ -291,7 +295,9 @@ class FCN8VGG:
             shape = [num_classes]
         init = tf.constant_initializer(value=bias_wights,
                                        dtype=tf.float32)
-        return tf.get_variable(name="biases", initializer=init, shape=shape)
+        var = tf.get_variable(name="biases", initializer=init, shape=shape)
+        _variable_summaries(var)
+        return var
 
     def get_fc_weight(self, name):
         init = tf.constant_initializer(value=self.data_dict[name][0],
@@ -302,6 +308,7 @@ class FCN8VGG:
             weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
                                   name='weight_loss')
             tf.add_to_collection('losses', weight_decay)
+        _variable_summaries(var)
         return var
 
     def _bias_reshape(self, bweight, num_orig, num_new):
@@ -380,12 +387,15 @@ class FCN8VGG:
         if wd and (not tf.get_variable_scope().reuse):
             weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
             tf.add_to_collection('losses', weight_decay)
+        _variable_summaries(var)
         return var
 
     def _bias_variable(self, shape, constant=0.0):
         initializer = tf.constant_initializer(constant)
-        return tf.get_variable(name='biases', shape=shape,
-                               initializer=initializer)
+        var = tf.get_variable(name='biases', shape=shape,
+                              initializer=initializer)
+        _variable_summaries(var)
+        return var
 
     def get_fc_weight_reshape(self, name, shape, num_classes=None):
         print('Layer name: %s' % name)
@@ -397,7 +407,9 @@ class FCN8VGG:
                                             num_new=num_classes)
         init = tf.constant_initializer(value=weights,
                                        dtype=tf.float32)
-        return tf.get_variable(name="weights", initializer=init, shape=shape)
+        var = tf.get_variable(name="weights", initializer=init, shape=shape)
+        _variable_summaries(var)
+        return var
 
 
 def _activation_summary(x):
@@ -417,3 +429,19 @@ def _activation_summary(x):
     # tensor_name = re.sub('%s_[0-9]*/' % TOWER_NAME, '', x.op.name)
     tf.histogram_summary(tensor_name + '/activations', x)
     tf.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+
+
+def _variable_summaries(var):
+    """Attach a lot of summaries to a Tensor."""
+    if not tf.get_variable_scope().reuse:
+        name = var.op.name
+        logging.info("Creating Summary for: %s" % name)
+        with tf.name_scope('summaries'):
+            mean = tf.reduce_mean(var)
+            tf.scalar_summary(name + '/mean', mean)
+            with tf.name_scope('stddev'):
+                stddev = tf.sqrt(tf.reduce_sum(tf.square(var - mean)))
+            tf.scalar_summary(name + '/sttdev', stddev)
+            tf.scalar_summary(name + '/max', tf.reduce_max(var))
+            tf.scalar_summary(name + '/min', tf.reduce_min(var))
+            tf.histogram_summary(name, var)
