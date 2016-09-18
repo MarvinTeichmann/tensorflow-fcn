@@ -174,6 +174,9 @@ class FCN8VGG:
                                                   num_classes=num_classes)
             else:
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 4096])
+
+            self._add_wd_and_summary(self, filt, self.wd, "fc_wlosses")
+
             conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
             conv_biases = self.get_bias(name, num_classes=num_classes)
             bias = tf.nn.bias_add(conv, conv_biases)
@@ -204,7 +207,8 @@ class FCN8VGG:
             # Apply convolution
             w_decay = self.wd
 
-            weights = self._variable_with_weight_decay(shape, stddev, w_decay)
+            weights = self._variable_with_weight_decay(shape, stddev, w_decay,
+                                                       decoder=True)
             conv = tf.nn.conv2d(bottom, weights, [1, 1, 1, 1], padding='SAME')
             # Apply bias
             conv_biases = self._bias_variable([num_classes], constant=0.0)
@@ -240,6 +244,7 @@ class FCN8VGG:
             stddev = (2 / num_input)**0.5
 
             weights = self.get_deconv_filter(f_shape)
+            self._add_wd_and_summary(self, weights, self.wd, "fc_wlosses")
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
 
@@ -362,7 +367,7 @@ class FCN8VGG:
                 fweight[:, :, :, start_idx:end_idx], axis=3)
         return avg_fweight
 
-    def _variable_with_weight_decay(self, shape, stddev, wd):
+    def _variable_with_weight_decay(self, shape, stddev, wd, decoder=False):
         """Helper to create an initialized Variable with weight decay.
 
         Note that the Variable is initialized with a truncated normal
@@ -386,7 +391,17 @@ class FCN8VGG:
 
         if wd and (not tf.get_variable_scope().reuse):
             weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            if not decoder:
+                tf.add_to_collection('losses', weight_decay)
+            else:
+                tf.add_to_collection('dec_losses', weight_decay)
+        _variable_summaries(var)
+        return var
+
+    def _add_wd_and_summary(self, var, wd, collection_name="losses"):
+        if wd and (not tf.get_variable_scope().reuse):
+            weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+            tf.add_to_collection(collection_name, weight_decay)
         _variable_summaries(var)
         return var
 
