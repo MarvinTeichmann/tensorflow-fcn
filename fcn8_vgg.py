@@ -175,7 +175,7 @@ class FCN8VGG:
             else:
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 4096])
 
-            self._add_wd_and_summary(self, filt, self.wd, "fc_wlosses")
+            self._add_wd_and_summary(filt, self.wd, "fc_wlosses")
 
             conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
             conv_biases = self.get_bias(name, num_classes=num_classes)
@@ -244,7 +244,7 @@ class FCN8VGG:
             stddev = (2 / num_input)**0.5
 
             weights = self.get_deconv_filter(f_shape)
-            self._add_wd_and_summary(self, weights, self.wd, "fc_wlosses")
+            self._add_wd_and_summary(weights, self.wd, "fc_wlosses")
             deconv = tf.nn.conv2d_transpose(bottom, weights, output_shape,
                                             strides=strides, padding='SAME')
 
@@ -274,7 +274,6 @@ class FCN8VGG:
                                        dtype=tf.float32)
         var = tf.get_variable(name="up_filter", initializer=init,
                               shape=weights.shape)
-        _variable_summaries(var)
         return var
 
     def get_conv_filter(self, name):
@@ -423,7 +422,6 @@ class FCN8VGG:
         init = tf.constant_initializer(value=weights,
                                        dtype=tf.float32)
         var = tf.get_variable(name="weights", initializer=init, shape=shape)
-        _variable_summaries(var)
         return var
 
 
