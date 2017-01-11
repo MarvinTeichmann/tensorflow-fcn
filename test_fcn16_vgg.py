@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-import skimage
-import skimage.io
-import skimage.transform
-
 import os
 import scipy as scp
 import scipy.misc
@@ -24,7 +20,7 @@ from tensorflow.python.framework import ops
 
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-img1 = skimage.io.imread("./test_data/tabby_cat.png")
+img1 = scp.misc.imread("./test_data/tabby_cat.png")
 
 with tf.Session() as sess:
     images = tf.placeholder("float")

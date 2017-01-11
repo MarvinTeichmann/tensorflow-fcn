@@ -5,6 +5,17 @@ Deconvolution Layers are initialized as bilinear upsampling. Conv and FCN layer 
 
 No Pascal VOC finetuning was applied to the weights. The model is meant to be finetuned on your own data. The model can be applied to an image directly (see `test_fcn32_vgg.py`) but the result will be rather coarse.
 
+## Requirements
+
+Apart from `tensorflow`, this code requires the following packages to be installed:
+
+numpy
+scipy
+pillow
+matplotlib
+
+Those packages can be installed by running `pip install -r requirements.txt` or `pip install numpy scipy pillow matplotlib`.
+
 ## Usage
 
 `python test_fcn32_vgg.py` to test the implementation.

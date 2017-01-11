@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-import skimage
-import skimage.io
-import skimage.transform
-
 import os
 import scipy as scp
 import scipy.misc
@@ -22,9 +18,10 @@ logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
 
 from tensorflow.python.framework import ops
 
+logging.info("Score weights are initialized random.")
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
 
-img1 = skimage.io.imread("./test_data/tabby_cat.png")
+img1 = scp.misc.imread("./test_data/tabby_cat.png")
 
 with tf.Session() as sess:
     images = tf.placeholder("float")
