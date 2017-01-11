@@ -18,8 +18,6 @@ logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
 
 from tensorflow.python.framework import ops
 
-os.environ['CUDA_VISIBLE_DEVICES'] = ''
-
 img1 = scp.misc.imread("./test_data/tabby_cat.png")
 
 with tf.Session() as sess:
