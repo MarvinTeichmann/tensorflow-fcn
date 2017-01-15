@@ -55,15 +55,15 @@ class FCN32VGG:
 
         with tf.name_scope('Processing'):
 
-            red, green, blue = tf.split(3, 3, rgb)
+            red, green, blue = tf.split(rgb, 3, 3)
             # assert red.get_shape().as_list()[1:] == [224, 224, 1]
             # assert green.get_shape().as_list()[1:] == [224, 224, 1]
             # assert blue.get_shape().as_list()[1:] == [224, 224, 1]
-            bgr = tf.concat(3, [
+            bgr = tf.concat_v2([
                 blue - VGG_MEAN[0],
                 green - VGG_MEAN[1],
                 red - VGG_MEAN[2],
-            ])
+            ], 3)
 
             if debug:
                 bgr = tf.Print(bgr, [tf.shape(bgr)],
@@ -205,7 +205,7 @@ class FCN32VGG:
                 new_shape = [in_shape[0], h, w, num_classes]
             else:
                 new_shape = [shape[0], shape[1], shape[2], num_classes]
-            output_shape = tf.pack(new_shape)
+            output_shape = tf.stack(new_shape)
 
             logging.debug("Layer: %s, Fan-in: %d" % (name, in_features))
             f_shape = [ksize, ksize, num_classes, in_features]
@@ -391,5 +391,5 @@ def _activation_summary(x):
     # session. This helps the clarity of presentation on tensorboard.
     tensor_name = x.op.name
     # tensor_name = re.sub('%s_[0-9]*/' % TOWER_NAME, '', x.op.name)
-    tf.histogram_summary(tensor_name + '/activations', x)
-    tf.scalar_summary(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
+    tf.summary.histogram(tensor_name + '/activations', x)
+    tf.summary.scalar(tensor_name + '/sparsity', tf.nn.zero_fraction(x))
