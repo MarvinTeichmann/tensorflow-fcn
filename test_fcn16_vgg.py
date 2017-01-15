@@ -36,8 +36,8 @@ with tf.Session() as sess:
 
     logging.info("Start Initializing Variabels.")
 
-    init = tf.initialize_all_variables()
-    sess.run(tf.initialize_all_variables())
+    init = tf.global_variables_initializer()
+    sess.run(init)
 
     print('Running the Network')
     tensors = [vgg_fcn.pred, vgg_fcn.pred_up]
