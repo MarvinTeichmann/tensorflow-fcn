@@ -7,7 +7,7 @@ No Pascal VOC finetuning was applied to the weights. The model is meant to be fi
 
 ## Requirements
 
-Apart from `tensorflow`, this code requires the following packages to be installed:
+This code requires `tensorflow` Version 1.0 to run. For older Versions, please use commit `bf9400c6303826e1c25bf09a3b032e51cef57e3b`. In addition the following packages are required:
 
 numpy
 scipy
