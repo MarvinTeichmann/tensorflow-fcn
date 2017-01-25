@@ -30,10 +30,10 @@ def loss(logits, labels, num_classes, head=None):
     with tf.name_scope('loss'):
         logits = tf.reshape(logits, (-1, num_classes))
         epsilon = tf.constant(value=1e-4)
-        logits = logits + epsilon
+        logits = logits
         labels = tf.to_float(tf.reshape(labels, (-1, num_classes)))
 
-        softmax = tf.nn.softmax(logits)
+        softmax = tf.nn.softmax(logits) + epsilon
 
         if head is not None:
             cross_entropy = -tf.reduce_sum(tf.mul(labels * tf.log(softmax),
