@@ -31,6 +31,10 @@ The `images` is a tensor with shape `[None, h, w, 3]`. Where `h` and `w` can hav
 
 Be aware, that `num_classes` influences the way `score_fr` (the original `fc8` layer) is initialized. For finetuning I recommend using the option `random_init_fc8=True`. 
 
+## Training
+
+Code for training can be found in the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) Project repository.
+
 ### Finetuning and training
 
 For training build the graph using `vgg.build(images, train=True, num_classes=num_classes)` were images is q queue yielding image batches. Use a softmax_cross_entropy loss function on top of the output of vgg.up. An Implementation of the loss function can be found in `loss.py`.
