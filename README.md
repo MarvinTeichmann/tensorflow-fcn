@@ -31,9 +31,9 @@ The `images` is a tensor with shape `[None, h, w, 3]`. Where `h` and `w` can hav
 
 Be aware, that `num_classes` influences the way `score_fr` (the original `fc8` layer) is initialized. For finetuning I recommend using the option `random_init_fc8=True`. 
 
-## Training
+### Training
 
-Code for training can be found in the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) Project repository.
+Example code for training can be found in the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) project repository.
 
 ### Finetuning and training
 
