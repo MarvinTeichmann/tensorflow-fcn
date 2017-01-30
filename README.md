@@ -1,3 +1,7 @@
+# Update
+
+An example on how to train FCNs with your own Data can now be found in the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) project repository.
+
 # tensorflow-fcn
 This is a Tensorflow implementation of [Fully Convolutional Networks](http://arxiv.org/abs/1411.4038) in Tensorflow. The network can be applied directly or finetuned using tensorflow training code.
 
