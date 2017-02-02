@@ -11,7 +11,7 @@ No Pascal VOC finetuning was applied to the weights. The model is meant to be fi
 
 ## Requirements
 
-This code requires `tensorflow` Version 1.0 to run. For older Versions, please use commit `bf9400c6303826e1c25bf09a3b032e51cef57e3b`. In addition the following packages are required:
+In addition to tensorflow the following packages are required:
 
 numpy
 scipy
@@ -19,6 +19,19 @@ pillow
 matplotlib
 
 Those packages can be installed by running `pip install -r requirements.txt` or `pip install numpy scipy pillow matplotlib`.
+
+### Tensorflow 1.0rc
+
+This code requires `Tensorflow Version >= 1.0rc` to run. If you want to use older Version you can try using commit `bf9400c6303826e1c25bf09a3b032e51cef57e3b`. Commit `bf9400c6303826e1c25bf09a3b032e51cef57e3b` has been tested using the pip version of `0.12`, `0.11` and `0.10`.
+
+Tensorflow 1.0 comes with a large number of breaking api changes. If you are currently running an older tensorflow version, I would suggest creating a new `virtualenv` and install 1.0rc using:
+
+```bash
+export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.0.0rc0-cp27-none-linux_x86_64.whl
+pip install --upgrade $TF_BINARY_URL
+```
+
+Above code will install the linux version with gpu support. For other versions follow the instructions [here](https://github.com/tensorflow/tensorflow/blob/r1.0/tensorflow/g3doc/get_started/os_setup.md).
 
 ## Usage
 
