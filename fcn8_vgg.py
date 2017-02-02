@@ -14,6 +14,7 @@ VGG_MEAN = [103.939, 116.779, 123.68]
 
 
 class FCN8VGG:
+
     def __init__(self, vgg16_npy_path=None):
         if vgg16_npy_path is None:
             path = sys.modules[self.__class__.__module__].__file__
@@ -59,7 +60,7 @@ class FCN8VGG:
             # assert red.get_shape().as_list()[1:] == [224, 224, 1]
             # assert green.get_shape().as_list()[1:] == [224, 224, 1]
             # assert blue.get_shape().as_list()[1:] == [224, 224, 1]
-            bgr = tf.concat_v2([
+            bgr = tf.concat([
                 blue - VGG_MEAN[0],
                 green - VGG_MEAN[1],
                 red - VGG_MEAN[2],
@@ -284,8 +285,8 @@ class FCN8VGG:
         print('Layer shape: %s' % str(shape))
         var = tf.get_variable(name="filter", initializer=init, shape=shape)
         if not tf.get_variable_scope().reuse:
-            weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
-                                  name='weight_loss')
+            weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
+                                       name='weight_loss')
             tf.add_to_collection('losses', weight_decay)
         _variable_summaries(var)
         return var
@@ -309,8 +310,8 @@ class FCN8VGG:
         shape = self.data_dict[name][0].shape
         var = tf.get_variable(name="weights", initializer=init, shape=shape)
         if not tf.get_variable_scope().reuse:
-            weight_decay = tf.mul(tf.nn.l2_loss(var), self.wd,
-                                  name='weight_loss')
+            weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
+                                       name='weight_loss')
             tf.add_to_collection('losses', weight_decay)
         _variable_summaries(var)
         return var
@@ -389,7 +390,8 @@ class FCN8VGG:
                               initializer=initializer)
 
         if wd and (not tf.get_variable_scope().reuse):
-            weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+            weight_decay = tf.multiply(
+                tf.nn.l2_loss(var), wd, name='weight_loss')
             if not decoder:
                 tf.add_to_collection('losses', weight_decay)
             else:
@@ -399,7 +401,8 @@ class FCN8VGG:
 
     def _add_wd_and_summary(self, var, wd, collection_name="losses"):
         if wd and (not tf.get_variable_scope().reuse):
-            weight_decay = tf.mul(tf.nn.l2_loss(var), wd, name='weight_loss')
+            weight_decay = tf.multiply(
+                tf.nn.l2_loss(var), wd, name='weight_loss')
             tf.add_to_collection(collection_name, weight_decay)
         _variable_summaries(var)
         return var
