@@ -31,7 +31,7 @@ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorf
 pip install --upgrade $TF_BINARY_URL
 ```
 
-Above commands will install the linux version with gpu support. For other versions follow the instructions [here](https://github.com/tensorflow/tensorflow/blob/r1.0/tensorflow/g3doc/get_started/os_setup.md).
+Above commands will install the linux version with gpu support. For other versions follow the instructions [here](https://www.tensorflow.org/versions/r1.0/get_started/os_setup).
 
 ## Usage
 
