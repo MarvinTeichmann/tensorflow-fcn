@@ -287,7 +287,8 @@ class FCN8VGG:
         if not tf.get_variable_scope().reuse:
             weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
                                        name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES,
+                                 weight_decay)
         _variable_summaries(var)
         return var
 
@@ -312,7 +313,8 @@ class FCN8VGG:
         if not tf.get_variable_scope().reuse:
             weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
                                        name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES,
+                                 weight_decay)
         _variable_summaries(var)
         return var
 
@@ -389,17 +391,17 @@ class FCN8VGG:
         var = tf.get_variable('weights', shape=shape,
                               initializer=initializer)
 
+        collection_name = tf.GraphKeys.REGULARIZATION_LOSSES
         if wd and (not tf.get_variable_scope().reuse):
             weight_decay = tf.multiply(
                 tf.nn.l2_loss(var), wd, name='weight_loss')
-            if not decoder:
-                tf.add_to_collection('losses', weight_decay)
-            else:
-                tf.add_to_collection('dec_losses', weight_decay)
+            tf.add_to_collection(collection_name, weight_decay)
         _variable_summaries(var)
         return var
 
-    def _add_wd_and_summary(self, var, wd, collection_name="losses"):
+    def _add_wd_and_summary(self, var, wd, collection_name=None):
+        if collection_name is None:
+            collection_name = tf.GraphKeys.REGULARIZATION_LOSSES
         if wd and (not tf.get_variable_scope().reuse):
             weight_decay = tf.multiply(
                 tf.nn.l2_loss(var), wd, name='weight_loss')

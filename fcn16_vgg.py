@@ -271,7 +271,8 @@ class FCN16VGG:
         if not tf.get_variable_scope().reuse:
             weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
                                        name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES,
+                                 weight_decay)
         return var
 
     def get_bias(self, name, num_classes=None):
@@ -293,7 +294,8 @@ class FCN16VGG:
         if not tf.get_variable_scope().reuse:
             weight_decay = tf.multiply(tf.nn.l2_loss(var), self.wd,
                                        name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES,
+                                 weight_decay)
         return var
 
     def _bias_reshape(self, bweight, num_orig, num_new):
@@ -372,7 +374,8 @@ class FCN16VGG:
         if wd and (not tf.get_variable_scope().reuse):
             weight_decay = tf.multiply(
                 tf.nn.l2_loss(var), wd, name='weight_loss')
-            tf.add_to_collection('losses', weight_decay)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES,
+                                 weight_decay)
         return var
 
     def _bias_variable(self, shape, constant=0.0):
