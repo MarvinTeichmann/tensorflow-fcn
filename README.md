@@ -1,9 +1,9 @@
 ### Update
 
-An example on how to train FCNs with your own Data can now be found in the [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) project repository.
+An example on how to integrate this code into your own semantic segmentation pipeline can be found in my [KittiSeg](https://github.com/MarvinTeichmann/KittiSeg) project repository.
 
 # tensorflow-fcn
-This is a Tensorflow implementation of [Fully Convolutional Networks](http://arxiv.org/abs/1411.4038) in Tensorflow. The network can be applied directly or finetuned using tensorflow training code.
+This is a one file Tensorflow implementation of [Fully Convolutional Networks](http://arxiv.org/abs/1411.4038) in Tensorflow. The code can easily be integrated in your semantic segmentation pipeline. The network can be applied directly or finetuned to perform semantic segmentation using tensorflow training code.
 
 Deconvolution Layers are initialized as bilinear upsampling. Conv and FCN layer weights using VGG weights. Numpy load is used to read VGG weights. No Caffe or Caffe-Tensorflow is required to run this. <b>The .npy file for <a href="https://dl.dropboxusercontent.com/u/50333326/vgg16.npy">VGG16</a> however need to be downloaded before using this needwork.</b>
 
