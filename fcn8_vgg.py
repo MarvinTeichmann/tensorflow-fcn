@@ -26,8 +26,8 @@ class FCN8VGG:
             logging.info("Load npy file from '%s'.", vgg16_npy_path)
         if not os.path.isfile(vgg16_npy_path):
             logging.error(("File '%s' not found. Download it from "
-                           "https://dl.dropboxusercontent.com/u/"
-                           "50333326/vgg16.npy"), vgg16_npy_path)
+                           "ftp://mi.eng.cam.ac.uk/pub/mttt2/"
+                           "models/vgg16.npy"), vgg16_npy_path)
             sys.exit(1)
 
         self.data_dict = np.load(vgg16_npy_path, encoding='latin1').item()
