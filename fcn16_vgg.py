@@ -162,13 +162,15 @@ class FCN16VGG:
 
             if name == 'fc6':
                 filt = self.get_fc_weight_reshape(name, [7, 7, 512, 4096])
+                conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='VALID')
             elif name == 'score_fr':
                 name = 'fc8'  # Name of score_fr layer in VGG Model
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 1000],
                                                   num_classes=num_classes)
+                conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
             else:
                 filt = self.get_fc_weight_reshape(name, [1, 1, 4096, 4096])
-            conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
+                conv = tf.nn.conv2d(bottom, filt, [1, 1, 1, 1], padding='SAME')
             conv_biases = self.get_bias(name, num_classes=num_classes)
             bias = tf.nn.bias_add(conv, conv_biases)
 
