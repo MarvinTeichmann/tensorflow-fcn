@@ -17,7 +17,7 @@ def loss(logits, labels, num_classes, head=None):
 
     Args:
       logits: tensor, float - [batch_size, width, height, num_classes].
-          Use vgg_fcn.up as logits.
+          Use vgg_fcn.upscore as logits.
       labels: Labels tensor, int32 - [batch_size, width, height, num_classes].
           The ground truth of your data.
       head: numpy array - [num_classes]
@@ -30,7 +30,6 @@ def loss(logits, labels, num_classes, head=None):
     with tf.name_scope('loss'):
         logits = tf.reshape(logits, (-1, num_classes))
         epsilon = tf.constant(value=1e-4)
-        logits = logits
         labels = tf.to_float(tf.reshape(labels, (-1, num_classes)))
 
         softmax = tf.nn.softmax(logits) + epsilon
