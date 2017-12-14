@@ -109,7 +109,7 @@ class FCN8VGG:
             self.pool5 = tf.space_to_batch(self.pool5,
                                            paddings=pad, block_size=2)
         else:
-            self.pool5 = self._max_pool(self.conv4_3, 'pool4', debug)
+            self.pool5 = self._max_pool(self.conv5_3, 'pool5', debug)
 
         self.fc6 = self._fc_layer(self.pool5, "fc6")
 
